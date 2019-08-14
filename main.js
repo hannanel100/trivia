@@ -3,13 +3,15 @@ const LENGTH = 10;
 const quest = document.getElementsByClassName("question");
 const ans = document.getElementsByClassName("answers");
 const URL = `https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple`;
+let score = 0;
+let questCounter = 0;
 /**
  * Constructur for Object - containing the three params passed
  * @param {String} question
  * @param {String} correct_answer
  * @param {Array} answers
  */
-let QuestAnsObj = function(question, correct_answer, answers) {
+let QuestAnsObj = function (question, correct_answer, answers) {
   this.question = question;
   this.correct_answer = correct_answer;
   this.answers = answers;
@@ -19,10 +21,10 @@ let QuestAnsObj = function(question, correct_answer, answers) {
  * @param {String} url  API URL
  * @param {Function} cFunction Callback function - fillArray
  */
-let loadDoc = function(url, cFunction) {
+let loadDoc = function (url, cFunction) {
   var xhttp;
   xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
       cFunction(JSON.parse(this.responseText));
     }
@@ -35,7 +37,8 @@ let loadDoc = function(url, cFunction) {
  * and correct answer
  * @param {Object} questObj this.responeText from AJAX call
  */
-let fillArray = function(questObj) {
+let fillArray = function (questObj) {
+  
   console.log(questObj);
   for (let i = 0; i < LENGTH; i++) {
     questAnsArray[i] = new QuestAnsObj(
@@ -56,26 +59,34 @@ let fillArray = function(questObj) {
  * on answers with callback to check function
  * @param {Array} questAnsArray Array of objects containing question, answers and correct answer
  */
-let writeQuestToPage = function(questAnsArray) {
-  quest[0].innerHTML = questAnsArray[0].question;
-  for (let i = 0; i < 4; i++) {
-    document.getElementById(`answer${i + 1}`).innerHTML = `${i + 1}. ${
-      questAnsArray[0].answers[i]
+let writeQuestToPage = function (questAnsArray) {
+  if (questCounter < LENGTH) {//checking if we have more questions in array
+    quest[0].innerHTML = questAnsArray[questCounter].question;
+    for (let i = 0; i < 4; i++) {
+      document.getElementById(`answer${i + 1}`).innerHTML = `${i + 1}. ${
+      questAnsArray[questCounter].answers[i]
     }`;
+    }
+    questCounter++;
+    ans[0].addEventListener("click", check);
+  } else {
+    console.log('Game Over');
   }
-  ans[0].addEventListener("click", check);
 };
 
 /**
  * Checks for right answer and prints right or wrong to the console
  * @param {Object} event The click event
  */
-let check = function(event) {
-  console.log(typeof event);
-  if (event.target.innerText.slice(3) === questAnsArray[0].correct_answer) {
-    console.log(`clicked correct answer`);
+let check = function (event) {
+  if (event.target.innerText.slice(3) === questAnsArray[questCounter].correct_answer) {
+    score++;
+    ans[0].innerHTML = `Score is: ${score}`;
+    quest[0].innerHTML = `YOURE RIGHT!`;
+    
   } else {
-    console.log(`clicked wrong answer`);
+    ans[0].innerHTML = '';
+    quest[0].innerHTML = `YOURE WRONG!`;
   }
 };
 /**
@@ -84,7 +95,7 @@ let check = function(event) {
  * @param  {Array} array The array to shuffle
  * @return {String}      The first item in the shuffled array
  */
-let shuffle = function(array) {
+let shuffle = function (array) {
   let currentIndex = array.length;
   let temporaryValue, randomIndex;
 
@@ -102,5 +113,7 @@ let shuffle = function(array) {
 
   return array;
 };
-
-loadDoc(URL, fillArray);
+(function main() {
+  loadDoc(URL, fillArray);
+  // writeQuestToPage(questAnsArray);
+})();
